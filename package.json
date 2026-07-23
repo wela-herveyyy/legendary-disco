@@ -9,7 +9,8 @@
     "check-types": "turbo run check-types",
     "db:pull": "bun run --cwd packages/db pull",
     "db:push": "bun run --cwd packages/db push",
-    "db:studio": "bun run --cwd packages/db studio"
+    "db:studio": "bun run --cwd packages/db studio",
+    "create-zone": "bun scripts/create-zone.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

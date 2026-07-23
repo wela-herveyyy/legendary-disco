@@ -111,3 +111,16 @@
 @utility font-display {
   font-family: var(--font-display);
 }
+
+/* Tactile button lip (avoid `shadow-*` names — Tailwind treats those as shadow colors). */
+@utility btn-lip-primary {
+  box-shadow: 0 3px 0 0 #234f42;
+}
+
+@utility btn-lip-secondary {
+  box-shadow: 0 3px 0 0 #7a3038;
+}
+
+@utility btn-lip-border {
+  box-shadow: 0 3px 0 0 #9aa8a1;
+}

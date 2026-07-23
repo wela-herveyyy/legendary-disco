@@ -1,128 +1,78 @@
 # `@repo/ui`
 
-Shared [shadcn/ui](https://ui.shadcn.com/docs/monorepo) package for this Turborepo.
+Shared [shadcn/ui](https://ui.shadcn.com/docs/monorepo) package (Tailwind v4, `base-nova`).
 
-```txt
-src/
-  components/        # shared UI primitives (button, input, …)
-  hooks/             # shared hooks from the registry
-  lib/utils.ts       # cn()
-  styles/globals.css # design tokens + Tailwind entry
-components.json      # CLI config for this package
-```
+## Initial setup
 
-Apps that consume this package also have their own `components.json` (`apps/web`, `apps/docs`) so the CLI knows where to put UI vs app-only blocks.
-
----
-
-## Guide: add a new component with shadcn
-
-### 1. Run `add` from an **app** workspace
-
-Always run the CLI from the app that will use the component (usually `web`). Do **not** run it from the monorepo root unless you pass `-c`.
+1. Install monorepo deps:
 
 ```sh
-# from repo root
-bunx --bun shadcn@latest add button -c apps/web -y
-
-# or from the app
-cd apps/web
-bunx --bun shadcn@latest add button -y
+bun install
 ```
 
-Use the same `style` / `baseColor` / `iconLibrary` as in `components.json` (`base-nova`, `neutral`, `lucide`).
+2. In each Next app that uses UI, import the shared CSS once (usually `app/globals.css`):
 
-### 2. What gets installed where
+```css
+@import "@repo/ui/globals.css";
 
-| What you add | Lands in |
-| --- | --- |
-| UI primitive (`button`, `input`, `dialog`, …) | `packages/ui/src/components/` |
-| Hook / util from registry | `packages/ui/src/hooks/` or `packages/ui/src/lib/` |
-| Block / page piece (`login-01`, form composed of UI) | `apps/web/components/` (app-local) |
-
-Examples:
-
-```sh
-# shared button → packages/ui/src/components/button.tsx
-bunx --bun shadcn@latest add button -c apps/web -y
-
-# several primitives at once
-bunx --bun shadcn@latest add label input card -c apps/web -y
-
-# block: primitives go to @repo/ui, login-form stays in the app
-bunx --bun shadcn@latest add login-01 -c apps/web -y
+@source ".";
+@source "../components";
 ```
 
-### 3. Overwrite an existing component
+3. Ensure the app has Tailwind PostCSS:
 
-```sh
-bunx --bun shadcn@latest add button -c apps/web -y -o
+`postcss.config.mjs`
+
+```js
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+export default config;
 ```
 
-`-o` / `--overwrite` replaces the file in `packages/ui`. Review the diff before committing.
+4. Keep `components.json` in both `packages/ui` and the app (`apps/web`, …) with the **same** `style` / `baseColor` / `iconLibrary`.
 
-### 4. Install any new package deps
-
-If the CLI reports missing packages (e.g. `@base-ui/react`), install them on **`@repo/ui`**:
-
-```sh
-bun add <dependency> --cwd packages/ui
-```
-
-### 5. Import in apps
+5. Import primitives:
 
 ```tsx
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 ```
 
-CSS is already wired in apps via:
+No extra publish step — apps depend on `"@repo/ui": "*"`.
 
-```css
-@import "@repo/ui/globals.css";
+## Layout
+
+```
+src/
+  components/        # button, input, card, …
+  hooks/
+  lib/utils.ts       # cn()
+  styles/globals.css # tokens + Tailwind entry
+components.json
 ```
 
-(`apps/web/app/globals.css`, `apps/docs/app/globals.css`)
+## Add a component (shadcn)
 
-### 6. Docs zone
-
-`apps/docs` has its own `components.json` pointing at the same `@repo/ui`. After adding a shared component from `web`, import it the same way in docs—no second `add` needed for primitives.
-
-To add a **docs-only** block:
+Always run the CLI from an **app** (or pass `-c`):
 
 ```sh
-bunx --bun shadcn@latest add [block] -c apps/docs -y
+bunx --bun shadcn@latest add button -c apps/web -y
+bunx --bun shadcn@latest add label input card -c apps/web -y
 ```
 
----
-
-## Useful flags
-
-| Flag | Meaning |
+| What you add | Lands in |
 | --- | --- |
-| `-y` | Skip prompts |
-| `-o` | Overwrite existing files |
-| `-c <path>` | App cwd (`apps/web` / `apps/docs`) |
-| `--dry-run` | Preview without writing |
+| UI primitive | `packages/ui/src/components/` |
+| Hook / util | `packages/ui/src/hooks/` or `lib/` |
+| Page block | `apps/<app>/components/` |
 
-Browse components: [ui.shadcn.com](https://ui.shadcn.com/docs/components)
+If the CLI needs a new dependency:
 
----
-
-## Requirements (don’t break the CLI)
-
-1. Keep `components.json` in **both** `packages/ui` and each app (`web`, `docs`).
-2. Keep `style`, `iconLibrary`, and `baseColor` **identical** across those files.
-3. Tailwind v4: leave `"tailwind.config": ""` empty.
-4. Package exports in `package.json` must stay aligned with aliases:
-
-```json
-{
-  "exports": {
-    "./globals.css": "./src/styles/globals.css",
-    "./components/*": "./src/components/*.tsx",
-    "./lib/*": "./src/lib/*.ts",
-    "./hooks/*": "./src/hooks/*.ts"
-  }
-}
+```sh
+bun add <dependency> --cwd packages/ui
 ```
+
+Overwrite an existing file with `-o`. Browse: [ui.shadcn.com](https://ui.shadcn.com/docs/components).
