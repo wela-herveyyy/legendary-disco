@@ -1,4 +1,5 @@
-@import "tailwindcss";
+/* apps/ is gitignored → auto-detect would scan node_modules (@base-ui docs) and emit broken CSS */
+@import "tailwindcss" source(none);
 @source "../components";
 @source "../hooks";
 
